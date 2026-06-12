@@ -1,0 +1,12 @@
+[package]
+name = "ferroxbrl-core"
+description = "Fast inline XBRL (iXBRL) fact extraction engine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[dependencies]
+quick-xml = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }

@@ -1,0 +1,15 @@
+[package]
+name = "ferroxbrl"
+description = "Fast inline XBRL (iXBRL) fact extractor — CLI"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[[bin]]
+name = "ferroxbrl"
+path = "src/main.rs"
+
+[dependencies]
+ferroxbrl-core = { path = "../ferroxbrl-core" }
+serde_json = { workspace = true }
