@@ -6,3 +6,4 @@ testdata/*_cal.xml
 testdata/*_def.xml
 testdata/*_lab.xml
 testdata/*_pre.xml
+__pycache__/
