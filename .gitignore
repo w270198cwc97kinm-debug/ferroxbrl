@@ -7,3 +7,5 @@ testdata/*_def.xml
 testdata/*_lab.xml
 testdata/*_pre.xml
 __pycache__/
+bench/corpus/
+bench/run100.log
