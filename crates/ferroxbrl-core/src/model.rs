@@ -99,6 +99,7 @@ impl Document {
                     "kind": f.kind,
                     "value": f.value,
                     "decimals": f.decimals,
+                    "format": f.format,
                     "unit": unit,
                     "entity": ctx.map(|c| c.entity.clone()),
                     "period": ctx.map(|c| serde_json::to_value(&c.period).unwrap()),

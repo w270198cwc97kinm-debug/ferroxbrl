@@ -47,12 +47,24 @@ pub fn apply(format: &str, raw: &str) -> Transformed {
         "dateyearmonthday" => date_ymd_numeric(&t),
         "datemonthyearen" | "datemonthnameyearen" => date_my_en(&t),
         "datemonthdayen" | "datemonthnamedayen" => date_md_en(&t),
+        "datemonthday" => date_md_numeric(&t),
+        "dateyearmonth" => date_ym_numeric(&t),
         // --- SEC-specific (ixt-sec) -----------------------------------------
         "boolballotbox" => bool_ballot_box(&t),
-        "duryear" => dur_number(&t, 'Y'),
-        "durmonth" => dur_number(&t, 'M'),
-        "durday" => dur_number(&t, 'D'),
-        "durweek" => dur_number(&t, 'W'),
+        "yesnoballotbox" => crate::sec_lookup::yesno_ballot_box(&t),
+        "duryear" => crate::sec_lookup::dur_decimal(&t, 'Y'),
+        "durmonth" => crate::sec_lookup::dur_decimal(&t, 'M'),
+        "durweek" => crate::sec_lookup::dur_decimal(&t, 'W'),
+        "durday" => crate::sec_lookup::dur_decimal(&t, 'D'),
+        "durhour" => crate::sec_lookup::dur_decimal(&t, 'H'),
+        "durwordsen" => crate::sec_lookup::durwords(&t),
+        "numwordsen" => crate::sec_lookup::numwords(&t),
+        "datequarterend" => crate::sec_lookup::datequarterend(&t),
+        "stateprovnameen" => crate::sec_lookup::stateprovname(&t),
+        "countrynameen" => crate::sec_lookup::countryname(&t),
+        "edgarprovcountryen" => crate::sec_lookup::edgarprovcountry(&t),
+        "exchnameen" => crate::sec_lookup::exchname(&t),
+        "entityfilercategoryen" => crate::sec_lookup::entityfilercategory(&t),
         _ => Transformed::Unknown,
     }
 }
@@ -161,15 +173,6 @@ fn bool_ballot_box(t: &str) -> Transformed {
     }
 }
 
-/// SEC duration: "5" with unit Y/M/W/D -> "P5Y" etc. Decimal values allowed.
-fn dur_number(t: &str, unit: char) -> Transformed {
-    let v = t.trim();
-    if v.is_empty() || !v.chars().all(|c| c.is_ascii_digit() || c == '.') {
-        return Transformed::Invalid(format!("unexpected duration content {t:?}"));
-    }
-    Transformed::Ok(format!("P{v}{unit}"))
-}
-
 /// "December 2024" -> "2024-12"
 fn date_my_en(t: &str) -> Transformed {
     let cleaned = t.replace(',', " ");
@@ -205,6 +208,40 @@ fn date_dmy_numeric(t: &str) -> Transformed {
     match split_numeric_date(t) {
         Some(v) => fmt_date(&v[2].to_string(), v[1], v[0]),
         None => Transformed::Invalid(format!("unparsable numeric date {t:?}")),
+    }
+}
+
+fn split_numeric_pair(t: &str) -> Option<(u32, u32)> {
+    let parts: Vec<&str> = t
+        .split(|c: char| c == '/' || c == '-' || c == '.' || c.is_whitespace())
+        .filter(|p| !p.is_empty())
+        .collect();
+    if parts.len() != 2 {
+        return None;
+    }
+    match (parts[0].parse::<u32>(), parts[1].parse::<u32>()) {
+        (Ok(a), Ok(b)) => Some((a, b)),
+        _ => None,
+    }
+}
+
+/// "12-31" / "12/31" -> "--12-31" (xs:gMonthDay)
+fn date_md_numeric(t: &str) -> Transformed {
+    match split_numeric_pair(t) {
+        Some((m, d)) if (1..=12).contains(&m) && (1..=31).contains(&d) => {
+            Transformed::Ok(format!("--{m:02}-{d:02}"))
+        }
+        _ => Transformed::Invalid(format!("unparsable numeric month-day {t:?}")),
+    }
+}
+
+/// "2024-12" / "2024/12" -> "2024-12" (xs:gYearMonth)
+fn date_ym_numeric(t: &str) -> Transformed {
+    match split_numeric_pair(t) {
+        Some((y, m)) if y >= 1000 && (1..=12).contains(&m) => {
+            Transformed::Ok(format!("{y:04}-{m:02}"))
+        }
+        _ => Transformed::Invalid(format!("unparsable numeric year-month {t:?}")),
     }
 }
 

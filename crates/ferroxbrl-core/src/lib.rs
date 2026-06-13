@@ -5,6 +5,7 @@
 
 pub mod model;
 pub mod parser;
+pub mod sec_lookup;
 pub mod transform;
 
 pub use model::{Context, Document, Fact, FactKind, Period, Unit};
