@@ -1,0 +1,25 @@
+[build-system]
+requires = ["maturin>=1.7,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "ferroxbrl"
+description = "Fast inline XBRL (iXBRL) fact extraction"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT OR Apache-2.0" }
+keywords = ["xbrl", "ixbrl", "edgar", "sec", "financial", "filings"]
+classifiers = [
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: 3",
+    "Topic :: Office/Business :: Financial",
+    "License :: OSI Approved :: MIT License",
+]
+dynamic = ["version"]
+
+[project.urls]
+Repository = "https://github.com/w270198cwc97kinm-debug/ferroxbrl"
+
+[tool.maturin]
+manifest-path = "crates/ferroxbrl-py/Cargo.toml"
+module-name = "ferroxbrl"

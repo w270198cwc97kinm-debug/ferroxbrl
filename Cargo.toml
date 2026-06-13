@@ -1,6 +1,9 @@
 [workspace]
 resolver = "2"
 members = ["crates/ferroxbrl-core", "crates/ferroxbrl-cli"]
+# ferroxbrl-py is built via maturin (extension-module), excluded from the
+# default `cargo build/test --workspace` to avoid Python link requirements.
+exclude = ["crates/ferroxbrl-py"]
 
 [workspace.package]
 version = "0.0.1"

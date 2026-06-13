@@ -9,3 +9,4 @@ testdata/*_pre.xml
 __pycache__/
 bench/corpus/
 bench/run100.log
+crates/*/target/
