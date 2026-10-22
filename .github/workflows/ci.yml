@@ -1,0 +1,54 @@
+# ferroxbrl の CI。PR と main への push で、Rust の単体テストと Python 拡張のテストを別々のジョブで回す。
+#
+# rust ジョブ（手元では `cargo test --workspace --locked` と同じ。ferroxbrl-core と ferroxbrl-cli が対象）
+#   - cargo fmt --check は入れていない。今の main で ferroxbrl-core/src/lib.rs の assert_eq! の整形が差分になり赤になるため。
+#   - cargo clippy -D warnings は入れていない。今の main で parser.rs:599 の useless_conversion（into_iter の二重呼び出し）が出て赤になるため。
+#     clippy は stable の更新で指摘が増えるので、直したあとも rust-toolchain でバージョンを固定して回すほうがよい。
+#   fmt と clippy は、コードを直したら足す（本人の指示は fmt --check・clippy -D warnings・test の 3 つだった）。
+# python ジョブ（手元では `maturin develop && pytest python/tests` と同じ。4 件）
+#   - ferroxbrl-py は workspace の外（extension-module のため）なので、maturin でビルドして Python から読み込む。
+#     maturin のバージョンは pyproject.toml の build-system に合わせる。
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  rust:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: テスト
+        run: cargo test --workspace --locked
+
+  python:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: astral-sh/setup-uv@v5
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: maturin でビルドして入れる
+        run: |
+          uv venv
+          uv pip install "maturin>=1.7,<2.0" pytest
+          . .venv/bin/activate
+          maturin develop
+      - name: テスト
+        run: |
+          . .venv/bin/activate
+          pytest -q python/tests
